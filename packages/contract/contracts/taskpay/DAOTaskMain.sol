@@ -6,8 +6,14 @@ import './DAOTaskOrder.sol';
 contract DAOTask is DAOTaskOrder {
     using ECDSA for bytes32;
 
-    constructor(POAP _poap) {
-        poap = _poap;
+    constructor(
+        POAP _poapForPublisher,
+        POAP _poapForEmployer,
+        POAP _poapForIntercessor
+    ) {
+        poapForPublisher = _poapForPublisher;
+        poapForEmployer = _poapForEmployer;
+        poapForIntercessor = _poapForIntercessor;
     }
 
     // 创建任务单和子任务单，首先验证三方的签名, 然后创建主任务单和里程碑任务单

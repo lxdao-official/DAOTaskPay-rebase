@@ -6,7 +6,9 @@ import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import './POAP.sol';
 
 contract DAOTaskOrder is DAOTaskOrderNFT {
-    POAP poap;
+    POAP internal poapForPublisher;
+    POAP internal poapForEmployer;
+    POAP internal poapForIntercessor;
 
     enum OrderStatus {
         Open, /** 订单已创建，但未结算 */
@@ -39,14 +41,14 @@ contract DAOTaskOrder is DAOTaskOrderNFT {
         OrderStatus status;
     }
 
-    mapping(uint256 => OrderGroup) public orderGroups;
-    mapping(uint256 => Order) public orders;
+    mapping(uint256 => OrderGroup) internal orderGroups;
+    mapping(uint256 => Order) internal orders;
 
     uint256 public orderGroupCount;
     uint256 public orderCount;
 
-    mapping(address => uint256[]) public userOrders;
-    mapping(uint256 => bool) private _orderIntercessored;
+    mapping(address => uint256[]) internal userOrders;
+    mapping(uint256 => bool) internal _orderIntercessored;
 
     function _createOrderGroup(OrderGroup memory orderGroup)
         internal

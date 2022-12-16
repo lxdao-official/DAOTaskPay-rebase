@@ -6,7 +6,9 @@ import './../sbt/SBT.sol';
 contract POAP is SBT {
     string private URI;
 
-    constructor() ERC721A('POAP', 'POAP') {}
+    constructor(string memory name, string memory symbol)
+        ERC721A(name, symbol)
+    {}
 
     mapping(uint256 => uint256) public orderIdOfTokenId;
 

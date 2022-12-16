@@ -6,13 +6,23 @@ const main = async () => {
   // await run("compile");
   // console.log("Compiled contracts.");
   const POAP = await ethers.getContractFactory('POAP');
-  const poap = await POAP.deploy();
-  await poap.deployed();
+  const poapforpublisher = await POAP.deploy('POAP For Publisher', 'poapforpublisher');
+  await poapforpublisher.deployed();
+  const poapforemployer = await POAP.deploy('POAP For Employer', 'poapforemployer');
+  await poapforemployer.deployed();
+  const poapforintercessor = await POAP.deploy('POAP For Intercessor', 'poapforintercessor');
+  await poapforintercessor.deployed();
 
-  console.log('poap deploy to ', poap.address);
+  console.log('poapforpublisher deploy to ', poapforpublisher.address);
+  console.log('poapforemployer deploy to ', poapforemployer.address);
+  console.log('poapforintercessor deploy to ', poapforintercessor.address);
 
   const DAOTask = await ethers.getContractFactory('DAOTask');
-  const daotask = await DAOTask.deploy(poap.address);
+  const daotask = await DAOTask.deploy(
+    poapforpublisher.address,
+    poapforemployer.address,
+    poapforintercessor.address,
+  );
   await daotask.deployed();
 
   console.log('daotask deploy to ', daotask.address);

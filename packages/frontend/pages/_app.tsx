@@ -14,7 +14,7 @@ const { chains, provider } = configureChains(
 );
 
 const { connectors } = getDefaultWallets({
-  appName: 'Card3',
+  appName: 'Task3',
   chains,
 });
 

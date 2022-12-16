@@ -32,6 +32,7 @@ contract DAOTaskOrder is DAOTaskOrderNFT {
         uint256 createAt;
         uint256[] orders;
     }
+    // 里程碑
     struct Order {
         // 解锁价格
         uint256 amount;
@@ -43,8 +44,8 @@ contract DAOTaskOrder is DAOTaskOrderNFT {
         OrderStatus status;
     }
 
-    mapping(uint256 => OrderGroup) internal orderGroups;
-    mapping(uint256 => Order) internal orders;
+    mapping(uint256 => OrderGroup) public orderGroups;
+    mapping(uint256 => Order) public orders;
 
     uint256 public orderGroupCount;
     uint256 public orderCount;
@@ -107,7 +108,7 @@ contract DAOTaskOrder is DAOTaskOrderNFT {
         // 将 order 的状态置为已结算
         orders[orderId].status = OrderStatus.Finished;
 
-        // 将 token 转让给 employer
+        // 销毁 nft
         _burn(orderId);
     }
 
@@ -165,9 +166,8 @@ contract DAOTaskOrder is DAOTaskOrderNFT {
             orders[orderId].status = OrderStatus.Cancelled;
         } else {
             _transfer(orderGroup.publisher, orderGroup.employer, orderId);
+            orders[orderId].status = OrderStatus.Open;
         }
-
-        orders[orderId].status = OrderStatus.Open;
     }
 
     function getOrderGroup(uint256 groupId)

@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./ownership/ownable.sol";
-import "./lib/StringUtils.sol";
-import "./Price.sol";
-import "./Metadata.sol";
-import "./DID.sol";
-import "erc721a/contracts/ERC721A.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
-import "@openzeppelin/contracts/utils/Base64.sol";
+import '../ownership/ownable.sol';
+import '../lib/StringUtils.sol';
+import './Price.sol';
+import './Metadata.sol';
+import './DID.sol';
+import 'erc721a/contracts/ERC721A.sol';
+import '@openzeppelin/contracts/utils/Strings.sol';
+import '@openzeppelin/contracts/utils/Base64.sol';
 
-contract PavoID is ERC721A, Ownable, Price, Metadata, DID {
+contract PayDID is ERC721A, Ownable, Price, Metadata, DID {
     bool private isOpen = false;
 
-    constructor() ERC721A("PavoID", "PavoID") {
+    constructor() ERC721A('PayDID', 'PayDID') {
         uint256[] memory _rentPrices = new uint256[](5);
         _rentPrices[0] = 1 ether;
         _rentPrices[1] = 0.1 ether;
@@ -30,13 +30,13 @@ contract PavoID is ERC721A, Ownable, Price, Metadata, DID {
     event Minted(address indexed to, uint256 indexed _amount);
 
     function mint(string calldata did) external payable {
-        require(isOpen, "not open");
-        require(getPrice(did) <= msg.value, "no enough eth");
+        require(isOpen, 'not open');
+        require(getPrice(did) <= msg.value, 'no enough eth');
         _mint(msg.sender, did);
     }
 
     function _mint(address to, string calldata did) internal {
-        require(!checkExist(did), "did already minted");
+        require(!checkExist(did), 'did already minted');
         uint256 tokenId = _nextTokenId();
         _safeMint(to, 1);
         addRecord(did, tokenId);
@@ -49,8 +49,8 @@ contract PavoID is ERC721A, Ownable, Price, Metadata, DID {
 
     function withdraw(address payable recipient) external onlyOwner {
         uint256 balance = address(this).balance;
-        (bool success, ) = recipient.call{value: balance}("");
-        require(success, "fail withdraw");
+        (bool success, ) = recipient.call{value: balance}('');
+        require(success, 'fail withdraw');
     }
 
     function updateOpen(bool _isOpen) external onlyOwner {

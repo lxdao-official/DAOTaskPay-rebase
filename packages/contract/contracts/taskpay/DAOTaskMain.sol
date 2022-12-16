@@ -35,6 +35,14 @@ contract DAOTask is DAOTaskOrder {
                 orderGroup.token
             )
         );
+        // 验证输入数据长度合法性
+        require(amounts.length==deadlineTimestamps.length,"incorrect attributes length");
+        // 验证deadline合法性
+        uint256 startTime = block.timestamp;
+        for(uint256 i;i<amounts.length;i++){
+            require(deadlineTimestamps[i]>startTime,'incorrect attributes:deadlineTimestamps');
+            startTime = deadlineTimestamps[i];
+        }
         // 验证三方的签名
         require(
             _verify(nonce, orderGroup.publisher, publisherSignature),
@@ -48,12 +56,13 @@ contract DAOTask is DAOTaskOrder {
             _verify(nonce, orderGroup.intercessor, intercessorSignature),
             'intercessor signature error'
         );
+
         // 创建任务单
         uint256 groupId = _createOrderGroup(orderGroup);
         // 创建子任务单
-        for (uint256 i = 0; i < amounts.length; i++) {
-            _createOrder(amounts[i], deadlineTimestamps[i], groupId);
-        }
+
+        _createOrders(amounts,deadlineTimestamps,groupId);
+        
     }
 
     function _verify(

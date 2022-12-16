@@ -16,6 +16,7 @@ contract DAOTaskOrder is DAOTaskOrderNFT {
         WaitIntercess, /** 等待仲裁 */
         Finished /** 订单已结算 */
     }
+
     struct OrderGroup {
         // 发起者
         address publisher;
@@ -43,8 +44,8 @@ contract DAOTaskOrder is DAOTaskOrderNFT {
         OrderStatus status;
     }
 
-    mapping(uint256 => OrderGroup) internal orderGroups;
-    mapping(uint256 => Order) internal orders;
+    mapping(uint256 => OrderGroup) public orderGroups;
+    mapping(uint256 => Order) public orders;
 
     uint256 public orderGroupCount;
     uint256 public orderCount;
@@ -61,33 +62,36 @@ contract DAOTaskOrder is DAOTaskOrderNFT {
         return orderGroupCount;
     }
 
-    function _createOrder(
+   
+    function _createOrders(
+        uint256[] memory amounts,
+        uint256[] memory deadlineTimestamps,
         uint256 groupId,
-        uint256 amount,
-        uint256 deadlineTimestamp
     ) internal returns (uint256) {
-        OrderGroup memory orderGroup = orderGroups[groupId];
+        uint256 tokenAmount;
         IERC20 token = IERC20(orderGroup.token);
+        OrderGroup memory orderGroup = orderGroups[groupId];
+
+        for (uint256 i = 0; i < amounts.length; i++) {
+            tokenAmount+=amounts[i];
+            // 生成 order
+            orderCount++;
+            orders[orderCount] = Order(
+                amounts[i],
+                deadlineTimestamps[i],
+                groupId,
+                OrderStatus.Open
+            );
+            orderGroups[groupId].orders.push(orderCount);
+            userOrders[msg.sender].push(orderCount);
+
+            // 生成 orderNFT ，将其转让给 publisher 持有
+            _safeMint(msg.sender, orderCount);
+        }
         // 扣除用户的 token
-        require(
-            token.balanceOf(msg.sender) >= amount,
-            'insufficient token balance'
-        );
-        token.transferFrom(msg.sender, address(this), amount);
-
-        // 生成 order
-        orderCount++;
-        orders[orderCount] = Order(
-            amount,
-            deadlineTimestamp,
-            groupId,
-            OrderStatus.Open
-        );
-        orderGroups[groupId].orders.push(orderCount);
-        userOrders[msg.sender].push(orderCount);
-
-        // 生成 orderNFT ，将其转让给 publisher 持有
-        _safeMint(msg.sender, orderCount);
+        // require也可删掉,因为会transferFrom会自动触发
+       
+        token.transferFrom(msg.sender, address(this), tokenAmount);
 
         return orderCount;
     }
@@ -107,7 +111,7 @@ contract DAOTaskOrder is DAOTaskOrderNFT {
         // 将 order 的状态置为已结算
         orders[orderId].status = OrderStatus.Finished;
 
-        // 将 token 转让给 employer
+        // 删除阶段NFT
         _burn(orderId);
     }
 
@@ -116,6 +120,7 @@ contract DAOTaskOrder is DAOTaskOrderNFT {
         require(ownerOf(orderId) == msg.sender, 'not owner');
         Order memory order = orders[orderId];
         OrderGroup memory orderGroup = orderGroups[order.groupId];
+        // 这步必然open,所以可以优化掉
         require(order.status == OrderStatus.Open, 'order not open');
         require(orderGroup.employer == msg.sender, 'not employee');
 
@@ -165,9 +170,10 @@ contract DAOTaskOrder is DAOTaskOrderNFT {
             orders[orderId].status = OrderStatus.Cancelled;
         } else {
             _transfer(orderGroup.publisher, orderGroup.employer, orderId);
+            orders[orderId].status = OrderStatus.Open;
+
         }
 
-        orders[orderId].status = OrderStatus.Open;
     }
 
     function getOrderGroup(uint256 groupId)

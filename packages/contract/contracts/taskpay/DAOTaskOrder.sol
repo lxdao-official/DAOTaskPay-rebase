@@ -13,6 +13,7 @@ contract DAOTaskOrder is DAOTaskOrderNFT {
     enum OrderStatus {
         Open, /** 订单已创建，但未结算 */
         Cancelled, /** 订单已退单 */
+        WaitIntercess, /** 等待仲裁 */
         Finished /** 订单已结算 */
     }
     struct OrderGroup {
@@ -28,6 +29,7 @@ contract DAOTaskOrder is DAOTaskOrderNFT {
         string title;
         // token
         address token;
+        uint256 createAt;
         uint256[] orders;
     }
     struct Order {
@@ -48,13 +50,13 @@ contract DAOTaskOrder is DAOTaskOrderNFT {
     uint256 public orderCount;
 
     mapping(address => uint256[]) internal userOrders;
-    mapping(uint256 => bool) internal _orderIntercessored;
 
     function _createOrderGroup(OrderGroup memory orderGroup)
         internal
         returns (uint256)
     {
         orderGroupCount++;
+        orderGroup.createAt = block.timestamp;
         orderGroups[orderGroupCount] = orderGroup;
         return orderGroupCount;
     }
@@ -131,23 +133,41 @@ contract DAOTaskOrder is DAOTaskOrderNFT {
         _finishOrder(orderId, false);
     }
 
-    // 仲裁者可以在 order 状态为 open 的情况下，并且 deadlineTimestamp 已经过去的情况下
+    // 在 order 状态为 open 的情况下，并且 deadlineTimestamp 已经过去的情况下
+    // 发起者和雇佣者都可以将订单标记为等待仲裁的状态，此时订单需要仲裁介入，任何人不能兑换报酬
+    function markStatusToIntercess(uint256 orderId) public {
+        Order memory order = orders[orderId];
+        OrderGroup memory orderGroup = orderGroups[order.groupId];
+        require(order.status == OrderStatus.Open, 'order not open');
+        require(
+            orderGroup.publisher == msg.sender ||
+                orderGroup.employer == msg.sender,
+            'not publisher or employee'
+        );
+        require(block.timestamp > order.deadlineTimestamp, 'not deadline');
+
+        orders[orderId].status = OrderStatus.WaitIntercess;
+    }
+
+    // 仲裁者可以在 order 状态为 WaitIntercess 的情况下操作
     // 将 order 状态置为 cancel 或者 将 nft 强制转移给 employer
 
     function intercessorOrder(uint256 orderId, bool isCancel) public {
         Order memory order = orders[orderId];
         OrderGroup memory orderGroup = orderGroups[order.groupId];
-        require(order.status == OrderStatus.Open, 'order not open');
+        require(
+            order.status == OrderStatus.WaitIntercess,
+            'order not in WaitIntercess'
+        );
         require(orderGroup.intercessor == msg.sender, 'not intercessor');
-        require(block.timestamp > order.deadlineTimestamp, 'not deadline');
-        require(!_orderIntercessored[orderId], 'order already intercessored');
 
         if (isCancel) {
             orders[orderId].status = OrderStatus.Cancelled;
         } else {
             _transfer(orderGroup.publisher, orderGroup.employer, orderId);
         }
-        _orderIntercessored[orderId] = true;
+
+        orders[orderId].status = OrderStatus.Open;
     }
 
     function getOrderGroup(uint256 groupId)

@@ -4,12 +4,13 @@ import { NextUIProvider } from '@nextui-org/react';
 import '@rainbow-me/rainbowkit/styles.css';
 
 import { getDefaultWallets, RainbowKitProvider } from '@rainbow-me/rainbowkit';
-import { chain, configureChains, createClient, WagmiConfig } from 'wagmi';
+import { configureChains, createClient, WagmiConfig } from 'wagmi';
 import { alchemyProvider } from 'wagmi/providers/alchemy';
 import { publicProvider } from 'wagmi/providers/public';
+import { mainnet, goerli } from 'wagmi/chains';
 
 const { chains, provider } = configureChains(
-  [chain.localhost],
+  [mainnet, goerli],
   [alchemyProvider({ apiKey: process.env.ALCHEMY_ID }), publicProvider()],
 );
 
@@ -27,7 +28,7 @@ const wagmiClient = createClient({
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <WagmiConfig client={wagmiClient}>
-      <RainbowKitProvider chains={chains} initialChain={chain.polygon}>
+      <RainbowKitProvider chains={chains} initialChain={goerli}>
         <NextUIProvider>
           <Component {...pageProps} />
         </NextUIProvider>

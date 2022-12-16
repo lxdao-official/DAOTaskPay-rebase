@@ -22,17 +22,18 @@ export default function Home() {
         <Navbar variant="floating">
           <Navbar.Brand>
             <Text b color="inherit" hideIn="xs">
-              0xPay.sh
+              TaskRewards
             </Text>
           </Navbar.Brand>
           <Navbar.Content hideIn="xs" variant="highlight-solid-rounded">
-            <Navbar.Link href="#">Task Rewards</Navbar.Link>
+            <Navbar.Link href="#">发起的项目</Navbar.Link>
+            <Navbar.Link href="#">收到的项目</Navbar.Link>
+            <Navbar.Link href="#">我的勋章</Navbar.Link>
           </Navbar.Content>
           <Navbar.Content>
-            {isConnected ? <span>{address}</span> : <ConnectButton />}
+            <ConnectButton />
           </Navbar.Content>
         </Navbar>
-        <Index />
       </main>
       <footer className={styles.footer}></footer>
     </div>

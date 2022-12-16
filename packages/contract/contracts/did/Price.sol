@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
-import "./lib/StringUtils.sol";
-import "./ownership/ownable.sol";
+import '../lib/StringUtils.sol';
+import '../ownership/ownable.sol';
 
 abstract contract Price is Ownable {
     using StringUtils for *;
@@ -25,8 +25,8 @@ abstract contract Price is Ownable {
 
     function getPrice(string calldata name) public view returns (uint256) {
         uint256 len = name.strlen();
-        require(len >= minLenth, "did too short");
-        require(len <= maxLenth, "did too long");
+        require(len >= minLenth, 'did too short');
+        require(len <= maxLenth, 'did too long');
         uint256 basePrice;
 
         if (len >= 5) {

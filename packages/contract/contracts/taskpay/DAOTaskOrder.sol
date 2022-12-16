@@ -1,16 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./OrderNFT.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import './DAOTaskOrderNFT.sol';
+import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import './POAP.sol';
 
-contract Order is OrderNFT {
-    IERC20 token;
+contract DAOTaskOrder is DAOTaskOrderNFT {
+    POAP poap;
 
     enum OrderStatus {
-        Open, // 订单已创建，但未结算
-        Cancelled, // 订单已退单
-        Finished // 订单已结算
+        Open, /** 订单已创建，但未结算 */
+        Cancelled, /** 订单已退单 */
+        Finished /** 订单已结算 */
     }
     struct OrderGroup {
         // 发起者
@@ -23,6 +24,8 @@ contract Order is OrderNFT {
         string metadataURI;
         // 任务描述
         string title;
+        // token
+        address token;
         uint256[] orders;
     }
     struct Order {
@@ -43,23 +46,14 @@ contract Order is OrderNFT {
     uint256 public orderCount;
 
     mapping(address => uint256[]) public userOrders;
+    mapping(uint256 => bool) private _orderIntercessored;
 
-    function _createOrderGroup(
-        address publisher,
-        address employer,
-        address intercessor,
-        string memory metadataURI,
-        string memory title
-    ) internal returns (uint256) {
+    function _createOrderGroup(OrderGroup memory orderGroup)
+        internal
+        returns (uint256)
+    {
         orderGroupCount++;
-        orderGroups[orderGroupCount] = OrderGroup(
-            publisher,
-            employer,
-            intercessor,
-            metadataURI,
-            title,
-            new uint256[](0)
-        );
+        orderGroups[orderGroupCount] = orderGroup;
         return orderGroupCount;
     }
 
@@ -68,10 +62,12 @@ contract Order is OrderNFT {
         uint256 amount,
         uint256 deadlineTimestamp
     ) internal returns (uint256) {
+        OrderGroup memory orderGroup = orderGroups[groupId];
+        IERC20 token = IERC20(orderGroup.token);
         // 扣除用户的 token
         require(
             token.balanceOf(msg.sender) >= amount,
-            "insufficient token balance"
+            'insufficient token balance'
         );
         token.transferFrom(msg.sender, address(this), amount);
 
@@ -92,40 +88,45 @@ contract Order is OrderNFT {
         return orderCount;
     }
 
-    // 雇佣者使用 orderNFT 可以结算 order，获取的 token
-    function finishOrder(uint256 orderId) public {
-        require(ownerOf(orderId) == msg.sender, "not owner");
+    function _finishOrder(uint256 orderId, bool byEmployer) internal {
         Order memory order = orders[orderId];
         OrderGroup memory orderGroup = orderGroups[order.groupId];
-        require(order.status == OrderStatus.Open, "order not open");
-        require(orderGroup.employer == msg.sender, "not employee");
-
-        // 转移 token
-        token.transfer(orderGroup.employer, order.amount);
+        IERC20 token = IERC20(orderGroup.token);
+        if (byEmployer) {
+            // 转移 token 给 employer
+            token.transfer(orderGroup.employer, order.amount);
+        } else {
+            // 转移 token 给发起者
+            token.transfer(orderGroup.publisher, order.amount);
+        }
 
         // 将 order 的状态置为已结算
         orders[orderId].status = OrderStatus.Finished;
 
         // 将 token 转让给 employer
-
         _burn(orderId);
     }
 
-    // 发起者可以在 order 状态为 cancel 的情况下，用 orderNFT 兑换 token
-    function cancelOrder(uint256 orderId) public {
-        require(ownerOf(orderId) == msg.sender, "not owner");
+    // 被雇佣者使用 orderNFT 可以结算 order，获取 token
+    function finishOrderByEmployer(uint256 orderId) public {
+        require(ownerOf(orderId) == msg.sender, 'not owner');
         Order memory order = orders[orderId];
         OrderGroup memory orderGroup = orderGroups[order.groupId];
-        require(order.status == OrderStatus.Cancelled, "order not cancelled");
-        require(orderGroup.publisher == msg.sender, "not publisher");
+        require(order.status == OrderStatus.Open, 'order not open');
+        require(orderGroup.employer == msg.sender, 'not employee');
 
-        // 转移 token 给 发起者
-        token.transfer(orderGroup.publisher, order.amount);
+        _finishOrder(orderId, true);
+    }
 
-        // 将 order 的状态置为已结算
-        orders[orderId].status = OrderStatus.Finished;
+    // 发起者可以在 order 状态为 cancel 的情况下，用 orderNFT 兑换 token
+    function finishOrderByPublisher(uint256 orderId) public {
+        require(ownerOf(orderId) == msg.sender, 'not owner');
+        Order memory order = orders[orderId];
+        OrderGroup memory orderGroup = orderGroups[order.groupId];
+        require(order.status == OrderStatus.Cancelled, 'order not cancelled');
+        require(orderGroup.publisher == msg.sender, 'not publisher');
 
-        _burn(orderId);
+        _finishOrder(orderId, false);
     }
 
     // 仲裁者可以在 order 状态为 open 的情况下，并且 deadlineTimestamp 已经过去的情况下
@@ -134,14 +135,28 @@ contract Order is OrderNFT {
     function intercessorOrder(uint256 orderId, bool isCancel) public {
         Order memory order = orders[orderId];
         OrderGroup memory orderGroup = orderGroups[order.groupId];
-        require(order.status == OrderStatus.Open, "order not open");
-        require(orderGroup.intercessor == msg.sender, "not intercessor");
-        require(block.timestamp > order.deadlineTimestamp, "not deadline");
+        require(order.status == OrderStatus.Open, 'order not open');
+        require(orderGroup.intercessor == msg.sender, 'not intercessor');
+        require(block.timestamp > order.deadlineTimestamp, 'not deadline');
+        require(!_orderIntercessored[orderId], 'order already intercessored');
 
         if (isCancel) {
             orders[orderId].status = OrderStatus.Cancelled;
         } else {
             _transfer(orderGroup.publisher, orderGroup.employer, orderId);
         }
+        _orderIntercessored[orderId] = true;
+    }
+
+    function getOrderGroup(uint256 groupId)
+        public
+        view
+        returns (OrderGroup memory)
+    {
+        return orderGroups[groupId];
+    }
+
+    function getOrder(uint256 orderId) public view returns (Order memory) {
+        return orders[orderId];
     }
 }

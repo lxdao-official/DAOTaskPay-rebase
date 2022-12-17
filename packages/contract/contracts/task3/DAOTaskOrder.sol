@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import './DAOTaskOrderNFT.sol';
-import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import './POAP.sol';
+import "./DAOTaskOrderNFT.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./POAP.sol";
 
 contract DAOTaskOrder is DAOTaskOrderNFT {
     POAP internal poapForPublisher;
@@ -63,18 +63,17 @@ contract DAOTaskOrder is DAOTaskOrderNFT {
         return orderGroupCount;
     }
 
-   
     function _createOrders(
         uint256[] memory amounts,
         uint256[] memory deadlineTimestamps,
-        uint256 groupId,
+        uint256 groupId
     ) internal returns (uint256) {
         uint256 tokenAmount;
-        IERC20 token = IERC20(orderGroup.token);
         OrderGroup memory orderGroup = orderGroups[groupId];
+        IERC20 token = IERC20(orderGroup.token);
 
         for (uint256 i = 0; i < amounts.length; i++) {
-            tokenAmount+=amounts[i];
+            tokenAmount += amounts[i];
             // 生成 order
             orderCount++;
             orders[orderCount] = Order(
@@ -91,7 +90,7 @@ contract DAOTaskOrder is DAOTaskOrderNFT {
         }
         // 扣除用户的 token
         // require也可删掉,因为会transferFrom会自动触发
-       
+
         token.transferFrom(msg.sender, address(this), tokenAmount);
 
         return orderCount;
@@ -112,30 +111,29 @@ contract DAOTaskOrder is DAOTaskOrderNFT {
         // 将 order 的状态置为已结算
         orders[orderId].status = OrderStatus.Finished;
 
-
         // 删除阶段NFT
         _burn(orderId);
     }
 
     // 被雇佣者使用 orderNFT 可以结算 order，获取 token
     function finishOrderByEmployer(uint256 orderId) public {
-        require(ownerOf(orderId) == msg.sender, 'not owner');
+        require(ownerOf(orderId) == msg.sender, "not owner");
         Order memory order = orders[orderId];
         OrderGroup memory orderGroup = orderGroups[order.groupId];
         // 这步必然open,所以可以优化掉
-        require(order.status == OrderStatus.Open, 'order not open');
-        require(orderGroup.employer == msg.sender, 'not employee');
+        require(order.status == OrderStatus.Open, "order not open");
+        require(orderGroup.employer == msg.sender, "not employee");
 
         _finishOrder(orderId, true);
     }
 
     // 发起者可以在 order 状态为 cancel 的情况下，用 orderNFT 兑换 token
     function finishOrderByPublisher(uint256 orderId) public {
-        require(ownerOf(orderId) == msg.sender, 'not owner');
+        require(ownerOf(orderId) == msg.sender, "not owner");
         Order memory order = orders[orderId];
         OrderGroup memory orderGroup = orderGroups[order.groupId];
-        require(order.status == OrderStatus.Cancelled, 'order not cancelled');
-        require(orderGroup.publisher == msg.sender, 'not publisher');
+        require(order.status == OrderStatus.Cancelled, "order not cancelled");
+        require(orderGroup.publisher == msg.sender, "not publisher");
 
         _finishOrder(orderId, false);
     }
@@ -145,13 +143,13 @@ contract DAOTaskOrder is DAOTaskOrderNFT {
     function markStatusToIntercess(uint256 orderId) public {
         Order memory order = orders[orderId];
         OrderGroup memory orderGroup = orderGroups[order.groupId];
-        require(order.status == OrderStatus.Open, 'order not open');
+        require(order.status == OrderStatus.Open, "order not open");
         require(
             orderGroup.publisher == msg.sender ||
                 orderGroup.employer == msg.sender,
-            'not publisher or employee'
+            "not publisher or employee"
         );
-        require(block.timestamp > order.deadlineTimestamp, 'not deadline');
+        require(block.timestamp > order.deadlineTimestamp, "not deadline");
 
         orders[orderId].status = OrderStatus.WaitIntercess;
     }
@@ -164,22 +162,16 @@ contract DAOTaskOrder is DAOTaskOrderNFT {
         OrderGroup memory orderGroup = orderGroups[order.groupId];
         require(
             order.status == OrderStatus.WaitIntercess,
-            'order not in WaitIntercess'
+            "order not in WaitIntercess"
         );
-        require(orderGroup.intercessor == msg.sender, 'not intercessor');
+        require(orderGroup.intercessor == msg.sender, "not intercessor");
 
         if (isCancel) {
             orders[orderId].status = OrderStatus.Cancelled;
         } else {
             _transfer(orderGroup.publisher, orderGroup.employer, orderId);
             orders[orderId].status = OrderStatus.Open;
-<<<<<<< HEAD:packages/contract/contracts/taskpay/DAOTaskOrder.sol
-
         }
-
-=======
-        }
->>>>>>> cf3f21f04f1d19c86caea9afe2b7f112a60dd2a6:packages/contract/contracts/task3/DAOTaskOrder.sol
     }
 
     function getOrderGroup(uint256 groupId)

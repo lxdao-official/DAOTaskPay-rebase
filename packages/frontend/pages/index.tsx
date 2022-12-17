@@ -25,10 +25,10 @@ import {
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import Head from 'next/head';
 import Image from 'next/image';
-import { useAccount, useNetwork, useBalance } from 'wagmi';
+import { useAccount, useNetwork, useBalance, useSignTypedData } from 'wagmi';
 import Index from '../components';
 import styles from '../styles/Home.module.css';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -38,9 +38,56 @@ import { Task } from '@mui/icons-material';
 import Nav from '../components/TaskNav';
 import TaskHead from '../components/TaskHead';
 import TaskNav from '../components/TaskNav';
+
+import { signTypedData } from '@wagmi/core';
+import { config } from '../config';
+import { BigNumber, ethers } from 'ethers';
+
 export default function Home() {
   const { address, isConnected, status } = useAccount();
   const { chain: currentChain } = useNetwork();
+  const [submitData, setSubmitData] = useState({
+    title: 'demo',
+    employer: '0xf603C89719F09EFcff4E575c28a1C95180FEc801',
+    publisher: '0xf603C89719F09EFcff4E575c28a1C95180FEc801',
+    intercessor: '0xf603C89719F09EFcff4E575c28a1C95180FEc801',
+    token: '0xf603C89719F09EFcff4E575c28a1C95180FEc801',
+    orders: [
+      {
+        amount: 10,
+        deadlineTimestamp: 1000,
+      },
+    ],
+  });
+  const domain = {
+    name: 'TaskRewards',
+    version: '1',
+    chainId: config.chain.id,
+    verifyingContract: config.contract as any,
+  };
+  const types = {
+    OrderGroup: [
+      { name: 'title', type: 'string' },
+      { name: 'publisher', type: 'address' },
+      { name: 'intercessor', type: 'address' },
+      { name: 'employer', type: 'address' },
+      { name: 'token', type: 'address' },
+      { name: 'orders', type: 'Order[]' },
+    ],
+    Order: [
+      { name: 'amount', type: 'uint256' },
+      { name: 'deadlineTimestamp', type: 'uint256' },
+    ],
+  };
+  const { error, isLoading, signTypedDataAsync } = useSignTypedData({
+    domain,
+    types,
+    value: submitData,
+  });
+  async function submit() {
+    const signature = await signTypedDataAsync();
+    console.log('signature:', signature);
+  }
 
   const [token, setToken] = useState<string>('');
   const [milestones, setMileStones] = useState<
@@ -191,7 +238,13 @@ export default function Home() {
               );
             })}
 
-            <Button>提交</Button>
+            <Button
+              onClick={() => {
+                submit();
+              }}
+            >
+              提交
+            </Button>
           </Card>
         </Container>
       </main>

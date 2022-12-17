@@ -16,13 +16,13 @@ export default function TaskNav() {
         </Text>
       </Navbar.Brand>
       <Navbar.Content hideIn="xs" variant="highlight-solid-rounded">
-        <Navbar.Link href="#" isActive={router.pathname == '/'}>
+        <Navbar.Link href="/" isActive={router.pathname == '/'}>
           发起的项目
         </Navbar.Link>
-        <Navbar.Link href="#" isActive={router.pathname == '/list'}>
+        <Navbar.Link href="/list" isActive={router.pathname == '/list'}>
           收到的项目
         </Navbar.Link>
-        <Navbar.Link href="#" isActive={router.pathname == '/poap'}>
+        <Navbar.Link href="/poap" isActive={router.pathname == '/poap'}>
           我的勋章
         </Navbar.Link>
       </Navbar.Content>

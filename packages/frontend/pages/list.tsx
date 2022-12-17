@@ -9,10 +9,13 @@ import Nav from '../components/TaskNav';
 import TaskHead from '../components/TaskHead';
 import TaskNav from '../components/TaskNav';
 import { useState } from 'react';
+import { useRouter } from 'next/router';
+import Link from 'next/link';
 export default function Home() {
   const { address, isConnected, status } = useAccount();
   const { chain: currentChain } = useNetwork();
   const [activeType, setActiveType] = useState(0);
+  const router = useRouter()
   return (
     <div className={styles.container}>
       <TaskHead />
@@ -59,20 +62,22 @@ export default function Home() {
               <div style={{ marginTop: '20px' }}>
                 <Grid.Container gap={2} justify="left">
                   <Grid xs={6}>
-                    <Card css={{ mw: '100%', p: '20px' }}  variant="flat" style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      flexDirection: 'row',
-                    }}>
+                    <Card css={{ mw: '100%', p: '20px' }}  variant="flat"  >
+                      <Link href={'/detail'} style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        flexDirection: 'row',
+                        cursor: 'pointer',
+                      }} >
                       <Text>项目标题xxxxx</Text>
                       <Text style={{
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
                         flexDirection: 'row',
-                      }}><Text color={"secondary"}>100</Text>{' '}USDT</Text>
-                      <Badge size="sm">待开发</Badge>
+                      }}><span color={"secondary"}>100</span>{' '}USDT</Text>
+                      <Badge size="sm">待开发</Badge></Link>
                     </Card>
                   </Grid>
                   <Grid xs={6}>
@@ -88,7 +93,7 @@ export default function Home() {
                         justifyContent: 'space-between',
                         alignItems: 'center',
                         flexDirection: 'row',
-                      }}><Text color={"secondary"}>100</Text>{' '}USDT</Text>
+                      }}><span color={"secondary"}>100</span>{' '}USDT</Text>
                       <Text style={{
                         color:"#999999",
                         fontSize:'12px'
@@ -108,7 +113,7 @@ export default function Home() {
                         justifyContent: 'space-between',
                         alignItems: 'center',
                         flexDirection: 'row',
-                      }}><Text color={"secondary"}>100</Text>{' '}USDT</Text>
+                      }}><span color={"secondary"}>100</span>{' '}USDT</Text>
                       <Text style={{
                         color:"#999999",
                         fontSize:'12px'

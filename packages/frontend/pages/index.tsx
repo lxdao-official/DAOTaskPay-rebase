@@ -41,12 +41,24 @@ import TaskNav from '../components/TaskNav';
 
 import { signTypedData } from '@wagmi/core';
 import { config } from '../config';
-import { BigNumber, ethers } from 'ethers';
+import toast from 'react-hot-toast';
+export interface Order {
+  amount: number;
+  deadlineTimestamp: number;
+}
 
+export interface OrderGroup {
+  title: string;
+  employer: string;
+  publisher: string;
+  intercessor: string;
+  token: string;
+  orders: Order[];
+}
 export default function Home() {
   const { address, isConnected, status } = useAccount();
   const { chain: currentChain } = useNetwork();
-  const [submitData, setSubmitData] = useState({
+  const [submitData, setSubmitData] = useState<OrderGroup>({
     title: 'demo',
     employer: '0xf603C89719F09EFcff4E575c28a1C95180FEc801',
     publisher: '0xf603C89719F09EFcff4E575c28a1C95180FEc801',
@@ -59,6 +71,13 @@ export default function Home() {
       },
     ],
   });
+
+  useEffect(()=>{
+    setSubmitData({
+      ...submitData,
+      publisher: address as any,
+    })
+  },[address])
   const domain = {
     name: 'TaskRewards',
     version: '1',
@@ -66,11 +85,17 @@ export default function Home() {
     verifyingContract: config.contract as any,
   };
   const types = {
+     EIP712Domain: [
+      { name: 'name', type: 'string' },
+      { name: 'version', type: 'string' },
+      { name: 'chainId', type: 'uint256' },
+      { name: 'verifyingContract', type: 'address' },
+    ],
     OrderGroup: [
       { name: 'title', type: 'string' },
+      { name: 'employer', type: 'address' },
       { name: 'publisher', type: 'address' },
       { name: 'intercessor', type: 'address' },
-      { name: 'employer', type: 'address' },
       { name: 'token', type: 'address' },
       { name: 'orders', type: 'Order[]' },
     ],
@@ -79,14 +104,57 @@ export default function Home() {
       { name: 'deadlineTimestamp', type: 'uint256' },
     ],
   };
-  const { error, isLoading, signTypedDataAsync } = useSignTypedData({
-    domain,
-    types,
-    value: submitData,
-  });
+  const { error, isLoading, signTypedDataAsync } = useSignTypedData();
+
+
   async function submit() {
-    const signature = await signTypedDataAsync();
-    console.log('signature:', signature);
+    const loading = toast.loading('Loading...');
+    const signParams = {
+      domain:JSON.parse(JSON.stringify(domain)),
+      types:JSON.parse(JSON.stringify(types)),
+      value: JSON.parse(JSON.stringify(submitData)),
+    }
+    const signature = await signTypedDataAsync(signParams);
+    // console.log('signature:', signature);
+    // const recoveredAddr = recoverTypedSignature_v4({
+    //   data: {
+    //     types: signParams.types,
+    //     domain: signParams.domain,
+    //     primaryType: 'OrderGroup',
+    //     message: signParams.value,
+    //   },
+    //   sig: signature,
+    // });
+    // console.log('recoveredAddr', recoveredAddr);
+    var requestOptions = {
+      method: 'POST',
+      body: JSON.stringify({
+        data: JSON.parse(JSON.stringify(submitData)),
+        launcher: submitData.publisher,
+        expiresAt: new Date(new Date().getTime() + 1000 * 60 * 60 * 10),
+        bussiness: 'task3test',
+        signers: [submitData.employer, submitData.intercessor],
+        domain:JSON.parse(JSON.stringify(domain)),
+        types:JSON.parse(JSON.stringify(types)),
+        signature,
+        primaryType: 'OrderGroup',
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      }
+    };
+  try{
+    const res = await fetch('https://osign.vercel.app/api/offer', requestOptions)
+    const data = await res.json()
+    console.log(data)
+    toast.success('success')
+    toast.dismiss(loading)
+  }catch(e){
+    toast.dismiss(loading)
+    toast.error('error')
+  }
+
+
   }
 
   const [token, setToken] = useState<string>('');

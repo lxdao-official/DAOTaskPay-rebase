@@ -55,29 +55,35 @@ export interface OrderGroup {
   token: string;
   orders: Order[];
 }
+
+export interface MileStone {
+  amount: number;
+  ddl: Dayjs;
+}
+
 export default function Home() {
   const { address, isConnected, status } = useAccount();
   const { chain: currentChain } = useNetwork();
   const [submitData, setSubmitData] = useState<OrderGroup>({
-    title: 'demo',
-    employer: '0xf603C89719F09EFcff4E575c28a1C95180FEc801',
-    publisher: '0xf603C89719F09EFcff4E575c28a1C95180FEc801',
-    intercessor: '0xf603C89719F09EFcff4E575c28a1C95180FEc801',
-    token: '0xf603C89719F09EFcff4E575c28a1C95180FEc801',
-    orders: [
-      {
-        amount: 10,
-        deadlineTimestamp: 1000,
-      },
-    ],
+    // title: '',
+    // employer: '',
+    // publisher: '',
+    // intercessor: '',
+    // token: '',
+    // orders: [
+    //   {
+    //     amount: 0,
+    //     deadlineTimestamp: 0,
+    //   },
+    // ],
   });
 
-  useEffect(()=>{
+  useEffect(() => {
     setSubmitData({
       ...submitData,
       publisher: address as any,
-    })
-  },[address])
+    });
+  }, [address]);
   const domain = {
     name: 'TaskRewards',
     version: '1',
@@ -85,7 +91,7 @@ export default function Home() {
     verifyingContract: config.contract as any,
   };
   const types = {
-     EIP712Domain: [
+    EIP712Domain: [
       { name: 'name', type: 'string' },
       { name: 'version', type: 'string' },
       { name: 'chainId', type: 'uint256' },
@@ -106,14 +112,25 @@ export default function Home() {
   };
   const { error, isLoading, signTypedDataAsync } = useSignTypedData();
 
-
   async function submit() {
     const loading = toast.loading('Loading...');
+    let data = submitData;
+    data.orders = [];
+    data.token = config.token[token];
+    milestones.map((value, index) => {
+      console.log(value.ddl);
+      console.log(value.ddl.valueOf());
+      submitData.orders.push({
+        amount: parseInt(value.amount),
+        deadlineTimestamp: value.ddl.valueOf(),
+      });
+    });
+    console.log(data);
     const signParams = {
-      domain:JSON.parse(JSON.stringify(domain)),
-      types:JSON.parse(JSON.stringify(types)),
-      value: JSON.parse(JSON.stringify(submitData)),
-    }
+      domain: JSON.parse(JSON.stringify(domain)),
+      types: JSON.parse(JSON.stringify(types)),
+      value: JSON.parse(JSON.stringify(data)),
+    };
     const signature = await signTypedDataAsync(signParams);
     // console.log('signature:', signature);
     // const recoveredAddr = recoverTypedSignature_v4({
@@ -129,38 +146,37 @@ export default function Home() {
     var requestOptions = {
       method: 'POST',
       body: JSON.stringify({
-        data: JSON.parse(JSON.stringify(submitData)),
-        launcher: submitData.publisher,
+        data: JSON.parse(JSON.stringify(data)),
+        launcher: data.publisher,
         expiresAt: new Date(new Date().getTime() + 1000 * 60 * 60 * 10),
         bussiness: 'task3test',
-        signers: [submitData.employer, submitData.intercessor],
-        domain:JSON.parse(JSON.stringify(domain)),
-        types:JSON.parse(JSON.stringify(types)),
+        signers: [data.employer, data.intercessor],
+        domain: JSON.parse(JSON.stringify(domain)),
+        types: JSON.parse(JSON.stringify(types)),
         signature,
         primaryType: 'OrderGroup',
       }),
       headers: {
-        "Content-Type": "application/json",
-      }
+        'Content-Type': 'application/json',
+      },
     };
-  try{
-    const res = await fetch('https://osign.vercel.app/api/offer', requestOptions)
-    const data = await res.json()
-    console.log(data)
-    toast.success('success')
-    toast.dismiss(loading)
-  }catch(e){
-    toast.dismiss(loading)
-    toast.error('error')
-  }
-
-
+    try {
+      const res = await fetch(
+        'https://osign.vercel.app/api/offer',
+        requestOptions,
+      );
+      const data = await res.json();
+      console.log(data);
+      toast.success('success');
+      toast.dismiss(loading);
+    } catch (e) {
+      toast.dismiss(loading);
+      toast.error('error');
+    }
   }
 
   const [token, setToken] = useState<string>('');
-  const [milestones, setMileStones] = useState<
-    { ddl: dayjs | Null; amount: Number | Null }[]
-  >([
+  const [milestones, setMileStones] = useState<MileStone[]>([
     {
       ddl: null,
       amount: null,
@@ -183,8 +199,14 @@ export default function Home() {
   };
 
   const handleMilestoneAdd = () => {
-    let newMilestone = { ddl: dayjs('2023-08-18T21:11:54'), amount: 100 };
+    let newMilestone = { ddl: null, amount: null };
     setMileStones([...milestones, newMilestone]);
+  };
+
+  const handleInputUserAddr = (event) => {
+    let data = submitData;
+    data[event.target.name] = event.target.value;
+    setSubmitData(data);
   };
   // to do: submit form
 
@@ -212,11 +234,23 @@ export default function Home() {
             </Text>
             <Row>
               <Col>
-                <TextField fullWidth label="任务名称" />
+                <TextField
+                  name="title"
+                  onChange={handleInputUserAddr}
+                  value={submitData.title}
+                  fullWidth
+                  label="任务名称"
+                />
               </Col>
               <Spacer x={1} />
               <Col>
-                <TextField fullWidth label="接收者地址" />
+                <TextField
+                  name="employer"
+                  onChange={handleInputUserAddr}
+                  value={submitData.employer}
+                  fullWidth
+                  label="接收者地址"
+                />
               </Col>
             </Row>
             <Spacer y={1} />
@@ -238,7 +272,13 @@ export default function Home() {
               </Col>
               <Spacer x={1} />
               <Col>
-                <TextField fullWidth label="仲裁者地址" />
+                <TextField
+                  name="intercessor"
+                  value={submitData.intercessor}
+                  onChange={handleInputUserAddr}
+                  fullWidth
+                  label="仲裁者地址"
+                />
               </Col>
             </Row>
             <Spacer y={1} />
@@ -272,9 +312,13 @@ export default function Home() {
                             label="Deadline"
                             name="ddl"
                             value={milestone.ddl}
-                            onChange={(event) =>
-                              handleMilestonesChange(index, event)
-                            }
+                            inputFormat="YYYY/MM/DD hh:mm"
+                            onChange={(event) => {
+                              let data = {
+                                target: { name: 'ddl', value: event },
+                              };
+                              handleMilestonesChange(index, data);
+                            }}
                             renderInput={(params) => <TextField {...params} />}
                           />
                         </FormControl>

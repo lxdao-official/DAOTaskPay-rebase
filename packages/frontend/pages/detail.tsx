@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { useAccount, useNetwork } from 'wagmi';
 import Index from '../components';
 import styles from '../styles/Home.module.css';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Nav from '../components/TaskNav';
 import TaskHead from '../components/TaskHead';
 import TaskNav from '../components/TaskNav';

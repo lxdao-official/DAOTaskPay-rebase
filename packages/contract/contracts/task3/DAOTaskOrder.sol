@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "./DAOTaskOrderNFT.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./POAP.sol";
+import "hardhat/console.sol";
 
 contract DAOTaskOrder is DAOTaskOrderNFT {
     POAP internal poapForPublisher;
@@ -51,7 +52,9 @@ contract DAOTaskOrder is DAOTaskOrderNFT {
     uint256 public orderGroupCount;
     uint256 public orderCount;
 
-    mapping(address => uint256[]) internal userOrders;
+    mapping(address => uint256[]) internal publishersOrderGroups;
+    mapping(address => uint256[]) internal employersOrderGroups;
+    mapping(address => uint256[]) internal intercessorsOrderGroups;
 
     function _createOrderGroup(OrderGroup memory orderGroup)
         internal
@@ -83,7 +86,6 @@ contract DAOTaskOrder is DAOTaskOrderNFT {
                 OrderStatus.Open
             );
             orderGroups[groupId].orders.push(orderCount);
-            userOrders[msg.sender].push(orderCount);
 
             // 生成 orderNFT ，将其转让给 publisher 持有
             _safeMint(msg.sender, orderCount);
@@ -91,7 +93,12 @@ contract DAOTaskOrder is DAOTaskOrderNFT {
         // 扣除用户的 token
         // require也可删掉,因为会transferFrom会自动触发
 
+        console.log("tokenAmount", token.allowance(msg.sender, address(this)));
         token.transferFrom(msg.sender, address(this), tokenAmount);
+
+        publishersOrderGroups[msg.sender].push(groupId);
+        employersOrderGroups[orderGroup.employer].push(groupId);
+        intercessorsOrderGroups[orderGroup.intercessor].push(groupId);
 
         return orderCount;
     }
@@ -184,5 +191,53 @@ contract DAOTaskOrder is DAOTaskOrderNFT {
 
     function getOrder(uint256 orderId) public view returns (Order memory) {
         return orders[orderId];
+    }
+
+    function getPublishersOrderGroups(address publisher)
+        public
+        view
+        returns (OrderGroup[] memory, uint256[] memory groupIds)
+    {
+        uint256[] memory groups = publishersOrderGroups[publisher];
+
+        OrderGroup[] memory orderGroups = new OrderGroup[](groups.length);
+
+        for (uint256 i = 0; i < groups.length; i++) {
+            orderGroups[i] = getOrderGroup(groups[i]);
+        }
+
+        return (orderGroups, groups);
+    }
+
+    function getEmployersOrderGroups(address employer)
+        public
+        view
+        returns (OrderGroup[] memory, uint256[] memory groupIds)
+    {
+        uint256[] memory groups = employersOrderGroups[employer];
+
+        OrderGroup[] memory orderGroups = new OrderGroup[](groups.length);
+
+        for (uint256 i = 0; i < groups.length; i++) {
+            orderGroups[i] = getOrderGroup(groups[i]);
+        }
+
+        return (orderGroups, groups);
+    }
+
+    function getIntercessorsOrderGroups(address intercessor)
+        public
+        view
+        returns (OrderGroup[] memory, uint256[] memory groupIds)
+    {
+        uint256[] memory groups = intercessorsOrderGroups[intercessor];
+
+        OrderGroup[] memory orderGroups = new OrderGroup[](groups.length);
+
+        for (uint256 i = 0; i < groups.length; i++) {
+            orderGroups[i] = getOrderGroup(groups[i]);
+        }
+
+        return (orderGroups, groups);
     }
 }

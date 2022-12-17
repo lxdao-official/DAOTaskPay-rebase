@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "./DAOTaskOrderNFT.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./POAP.sol";
+import "hardhat/console.sol";
 
 contract DAOTaskOrder is DAOTaskOrderNFT {
     POAP internal poapForPublisher;
@@ -92,6 +93,7 @@ contract DAOTaskOrder is DAOTaskOrderNFT {
         // 扣除用户的 token
         // require也可删掉,因为会transferFrom会自动触发
 
+        console.log("tokenAmount", token.allowance(msg.sender, address(this)));
         token.transferFrom(msg.sender, address(this), tokenAmount);
 
         publishersOrderGroups[msg.sender].push(groupId);
@@ -197,24 +199,48 @@ poapForPublisher.mint(msg.sender,orderId);
     function getPublishersOrderGroups(address publisher)
         public
         view
-        returns (uint256[] memory)
+        returns (OrderGroup[] memory, uint256[] memory groupIds)
     {
-        return publishersOrderGroups[publisher];
+        uint256[] memory groups = publishersOrderGroups[publisher];
+
+        OrderGroup[] memory orderGroups = new OrderGroup[](groups.length);
+
+        for (uint256 i = 0; i < groups.length; i++) {
+            orderGroups[i] = getOrderGroup(groups[i]);
+        }
+
+        return (orderGroups, groups);
     }
 
     function getEmployersOrderGroups(address employer)
         public
         view
-        returns (uint256[] memory)
+        returns (OrderGroup[] memory, uint256[] memory groupIds)
     {
-        return employersOrderGroups[employer];
+        uint256[] memory groups = employersOrderGroups[employer];
+
+        OrderGroup[] memory orderGroups = new OrderGroup[](groups.length);
+
+        for (uint256 i = 0; i < groups.length; i++) {
+            orderGroups[i] = getOrderGroup(groups[i]);
+        }
+
+        return (orderGroups, groups);
     }
 
     function getIntercessorsOrderGroups(address intercessor)
         public
         view
-        returns (uint256[] memory)
+        returns (OrderGroup[] memory, uint256[] memory groupIds)
     {
-        return intercessorsOrderGroups[intercessor];
+        uint256[] memory groups = intercessorsOrderGroups[intercessor];
+
+        OrderGroup[] memory orderGroups = new OrderGroup[](groups.length);
+
+        for (uint256 i = 0; i < groups.length; i++) {
+            orderGroups[i] = getOrderGroup(groups[i]);
+        }
+
+        return (orderGroups, groups);
     }
 }

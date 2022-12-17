@@ -22,6 +22,7 @@ import {
   Button as MuiButton,
   IconButton,
 } from '@mui/material';
+import Router from 'next/router';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import Head from 'next/head';
 import Image from 'next/image';
@@ -42,6 +43,7 @@ import TaskNav from '../components/TaskNav';
 import { signTypedData } from '@wagmi/core';
 import { config } from '../config';
 import toast from 'react-hot-toast';
+import { redirect } from 'next/dist/server/api-utils';
 export interface Order {
   amount: number;
   deadlineTimestamp: number;
@@ -166,9 +168,11 @@ export default function Home() {
         requestOptions,
       );
       const data = await res.json();
-      console.log(data);
+      console.log(data.data.id);
       toast.success('success');
       toast.dismiss(loading);
+      Router.push(`/confirm/${data.data.id}`);
+      // redirect();
     } catch (e) {
       toast.dismiss(loading);
       toast.error('error');
@@ -208,7 +212,6 @@ export default function Home() {
     data[event.target.name] = event.target.value;
     setSubmitData(data);
   };
-  // to do: submit form
 
   return (
     <div className={styles.container}>

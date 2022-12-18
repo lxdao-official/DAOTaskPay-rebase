@@ -8,6 +8,7 @@ import styles from '../styles/Home.module.css';
 import Nav from '../components/TaskNav';
 import TaskHead from '../components/TaskHead';
 import TaskNav from '../components/TaskNav';
+import { Container } from '@mui/system';
 export default function Home() {
   const { address, isConnected, status } = useAccount();
   const { chain: currentChain } = useNetwork();
@@ -54,12 +55,6 @@ export default function Home() {
       img: '/images/fruit-7.jpeg',
       price: '$7.50',
     },
-    {
-      type: '发起者守约勋章',
-      title: 'Watermelon',
-      img: '/images/fruit-8.jpeg',
-      price: '$12.20',
-    },
   ];
   return (
     <div className={styles.container}>
@@ -67,38 +62,156 @@ export default function Home() {
       <main className={styles.main}>
         <TaskNav />
         <div className={styles.poap_page}>
-          <Grid.Container gap={2} justify="flex-start">
-            {list.map((item, index) => (
-              <Grid xs={6} sm={3} key={index}>
-                <Card isPressable>
-                  <Card.Header>{item.type}</Card.Header>
-                  <Card.Body css={{ p: 0 }}>
-                    <Card.Image
-                      src={'https://nextui.org' + item.img}
-                      objectFit="cover"
-                      width="100%"
-                      height={140}
-                      alt={item.title}
-                    />
-                  </Card.Body>
-                  <Card.Footer css={{ justifyItems: 'flex-start' }}>
-                    <Row wrap="wrap" justify="space-between" align="center">
-                      <Text b>{item.title}</Text>
-                      <Text
+          <Container
+            display="flex"
+            alignItems="center"
+            justify="center"
+            css={{ marginTop: '4vh', marginBottom: '4vh' }}
+          >
+            <Card css={{ p: '20px', marginTop: '20px' }}>
+              <Text
+                size={24}
+                weight="bold"
+                css={{
+                  as: 'center',
+                  mb: '20px',
+                }}
+              >
+                发起者守约勋章
+              </Text>
+
+              <Grid.Container gap={2} justify="flex-start">
+                {list.map((item, index) => (
+                  <Grid xs={6} sm={3} key={index}>
+                    <Card>
+                      <Card.Body css={{ p: 0 }}>
+                        <Card.Image
+                          src={'https://nextui.org' + item.img}
+                          objectFit="cover"
+                          width="100%"
+                          height={140}
+                          alt={item.title}
+                        />
+                      </Card.Body>
+                      <Card.Footer
                         css={{
-                          color: '$accents7',
-                          fontWeight: '$semibold',
-                          fontSize: '$sm',
+                          justifyItems: 'flex-start',
+                          bgColor: '#f234ff00',
                         }}
+                        isBlurred
                       >
-                        {item.price}
-                      </Text>
-                    </Row>
-                  </Card.Footer>
-                </Card>
-              </Grid>
-            ))}
-          </Grid.Container>
+                        <Row wrap="wrap" justify="center" align="center">
+                          <Text size={12} weight="bold" transform="uppercase">
+                            {item.title}
+                          </Text>
+                        </Row>
+                      </Card.Footer>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid.Container>
+            </Card>
+          </Container>
+          <Container
+            display="flex"
+            alignItems="center"
+            justify="center"
+            css={{ marginTop: '4vh', marginBottom: '4vh' }}
+          >
+            <Card css={{ p: '20px', marginTop: '20px' }}>
+              <Text
+                size={24}
+                weight="bold"
+                css={{
+                  as: 'center',
+                  mb: '20px',
+                }}
+              >
+                Builder守约勋章
+              </Text>
+
+              <Grid.Container gap={2} justify="flex-start">
+                {list.map((item, index) => (
+                  <Grid xs={6} sm={3} key={index}>
+                    <Card>
+                      <Card.Body css={{ p: 0 }}>
+                        <Card.Image
+                          src={'https://nextui.org' + item.img}
+                          objectFit="cover"
+                          width="100%"
+                          height={140}
+                          alt={item.title}
+                        />
+                      </Card.Body>
+                      <Card.Footer
+                        css={{
+                          justifyItems: 'flex-start',
+                          bgColor: '#f234ff00',
+                        }}
+                        isBlurred
+                      >
+                        <Row wrap="wrap" justify="center" align="center">
+                          <Text size={12} weight="bold" transform="uppercase">
+                            {item.title}
+                          </Text>
+                        </Row>
+                      </Card.Footer>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid.Container>
+            </Card>
+          </Container>
+          <Container
+            display="flex"
+            alignItems="center"
+            justify="center"
+            css={{ marginTop: '4vh', marginBottom: '4vh' }}
+          >
+            <Card css={{ p: '20px', marginTop: '20px' }}>
+              <Text
+                size={24}
+                weight="bold"
+                css={{
+                  as: 'center',
+                  mb: '20px',
+                }}
+              >
+                仲裁者守约勋章
+              </Text>
+
+              <Grid.Container gap={2} justify="flex-start">
+                {list.map((item, index) => (
+                  <Grid xs={6} sm={3} key={index}>
+                    <Card>
+                      <Card.Body css={{ p: 0 }}>
+                        <Card.Image
+                          src={'https://nextui.org' + item.img}
+                          objectFit="cover"
+                          width="100%"
+                          height={140}
+                          alt={item.title}
+                        />
+                      </Card.Body>
+                      <Card.Footer
+                        css={{
+                          justifyItems: 'flex-start',
+                          bgColor: '#f234ff00',
+                        }}
+                        isBlurred
+                      >
+                        <Row wrap="wrap" justify="center" align="center">
+                          <Text size={12} weight="bold" transform="uppercase">
+                            {item.title}
+                          </Text>
+                        </Row>
+                      </Card.Footer>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid.Container>
+            </Card>
+          </Container>
         </div>
       </main>
       <footer className={styles.footer}></footer>

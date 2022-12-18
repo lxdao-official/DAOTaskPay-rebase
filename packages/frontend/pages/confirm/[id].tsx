@@ -6,6 +6,7 @@ import {
   Grid,
   Navbar,
   Text,
+  Spacer,
 } from '@nextui-org/react';
 import toast from 'react-hot-toast';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
@@ -194,14 +195,26 @@ export default function Confirm() {
     setCurrent(address);
   }, [address]);
 
-  async function submit() {
+  async function approve() {
     const loading = toast.loading('Loading...');
     try {
       let sum = 0;
       confirmData.staticData.orders.map((order, index) => {
         sum += order.amount;
       });
-      await tokenOpt.approve(sum);
+      const tx = await tokenOpt.approve(sum);
+
+      toast.dismiss(loading);
+      toast.success('success');
+    } catch (e) {
+      console.error(e);
+      toast.dismiss(loading);
+      toast.error('error');
+    }
+  }
+  async function submit() {
+    const loading = toast.loading('Loading...');
+    try {
       await orderReader.createOrderGroup(
         confirmData.staticData.publisher,
         confirmData.staticData.employer,
@@ -469,6 +482,26 @@ export default function Confirm() {
                       </>
                     );
                   })}
+                  <Text
+                    style={{
+                      marginTop: '20px',
+                    }}
+                  >
+                    发起者操作：
+                  </Text>
+                  <Button
+                    auto
+                    css={{ width: '100%' }}
+                    color="primary"
+                    onClick={() => {
+                      approve();
+                    }}
+                    // disabled={!EmployerSigned || !IntercessorSigned}
+                    //to do: 需要判断有没有上过链
+                  >
+                    批准支付
+                  </Button>
+                  <Spacer y={1} />
                   <Button
                     auto
                     css={{ width: '100%' }}

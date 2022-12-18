@@ -110,6 +110,8 @@ contract DAOTaskOrder is DAOTaskOrderNFT {
         if (byEmployer) {
             // 转移 token 给 employer
             token.transfer(orderGroup.employer, order.amount);
+            poapForEmployer.mint(msg.sender,orderId);
+poapForPublisher.mint(msg.sender,orderId);
         } else {
             // 转移 token 给发起者
             token.transfer(orderGroup.publisher, order.amount);
@@ -159,6 +161,7 @@ contract DAOTaskOrder is DAOTaskOrderNFT {
         require(block.timestamp > order.deadlineTimestamp, "not deadline");
 
         orders[orderId].status = OrderStatus.WaitIntercess;
+        poapForIntercessor.mint(msg.sender,orderId);
     }
 
     // 仲裁者可以在 order 状态为 WaitIntercess 的情况下操作

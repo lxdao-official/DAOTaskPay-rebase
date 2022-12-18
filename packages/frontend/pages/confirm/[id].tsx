@@ -25,6 +25,8 @@ import { config } from '../../config';
 import { Refresh } from '@mui/icons-material';
 import { orderReader } from '../../lib/orderRead';
 import { BigNumber, utils } from 'ethers';
+import { tokenOpt } from '../../lib/tokenOpt';
+import { token } from '../../typechain-types/@openzeppelin/contracts';
 
 export interface OSignOffer {
   id: string;
@@ -195,6 +197,11 @@ export default function Confirm() {
   async function submit() {
     const loading = toast.loading('Loading...');
     try {
+      let sum = 0;
+      confirmData.staticData.orders.map((order, index) => {
+        sum += order.amount;
+      });
+      await tokenOpt.approve(sum);
       await orderReader.createOrderGroup(
         confirmData.staticData.publisher,
         confirmData.staticData.employer,
@@ -214,7 +221,9 @@ export default function Confirm() {
           '0xccdc5fcfbc73297efce8cc4794268da0583781d26f96a65589417e42dfafb1882daf4b52b3e0caef59cb9d33dfd3cd96cd475c4c210a53f24c5ce8a8ab8752e81b',
         ],
       );
+      toast.dismiss(loading);
       toast.success('success');
+      router.push('/list');
     } catch (e) {
       console.error(e);
       toast.dismiss(loading);

@@ -17,10 +17,10 @@ export default function TaskNav() {
       </Navbar.Brand>
       <Navbar.Content hideIn="xs" variant="highlight-solid-rounded">
         <Navbar.Link href="/" isActive={router.pathname == '/'}>
-          发起的项目
+          发起项目
         </Navbar.Link>
         <Navbar.Link href="/list" isActive={router.pathname == '/list'}>
-          收到的项目
+          项目列表
         </Navbar.Link>
         <Navbar.Link href="/poap" isActive={router.pathname == '/poap'}>
           我的勋章

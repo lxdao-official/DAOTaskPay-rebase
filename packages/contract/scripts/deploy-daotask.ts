@@ -103,6 +103,7 @@ const main = async () => {
     )
   ).wait();
 
+  console.log(await daotask.getPublishersOrderGroups(deployer.address));
   console.log("daotask deploy to ", daotask.address);
 };
 

@@ -110,8 +110,8 @@ contract DAOTaskOrder is DAOTaskOrderNFT {
         if (byEmployer) {
             // 转移 token 给 employer
             token.transfer(orderGroup.employer, order.amount);
-            poapForEmployer.mint(msg.sender,orderId);
-poapForPublisher.mint(msg.sender,orderId);
+            poapForEmployer.mint(msg.sender, orderId);
+            poapForPublisher.mint(msg.sender, orderId);
         } else {
             // 转移 token 给发起者
             token.transfer(orderGroup.publisher, order.amount);
@@ -161,7 +161,7 @@ poapForPublisher.mint(msg.sender,orderId);
         require(block.timestamp > order.deadlineTimestamp, "not deadline");
 
         orders[orderId].status = OrderStatus.WaitIntercess;
-        poapForIntercessor.mint(msg.sender,orderId);
+        poapForIntercessor.mint(msg.sender, orderId);
     }
 
     // 仲裁者可以在 order 状态为 WaitIntercess 的情况下操作
@@ -187,9 +187,15 @@ poapForPublisher.mint(msg.sender,orderId);
     function getOrderGroup(uint256 groupId)
         public
         view
-        returns (OrderGroup memory)
+        returns (OrderGroup memory, Order[] memory)
     {
-        return orderGroups[groupId];
+        OrderGroup memory orderGroup = orderGroups[groupId];
+        uint256[] memory orderIds = orderGroup.orders;
+        Order[] memory orders = new Order[](orderIds.length);
+        for (uint256 i = 0; i < orderIds.length; i++) {
+            orders[i] = getOrder(orderIds[i]);
+        }
+        return (orderGroup, orders);
     }
 
     function getOrder(uint256 orderId) public view returns (Order memory) {
@@ -199,48 +205,48 @@ poapForPublisher.mint(msg.sender,orderId);
     function getPublishersOrderGroups(address publisher)
         public
         view
-        returns (OrderGroup[] memory, uint256[] memory groupIds)
+        returns (OrderGroup[] memory, uint256[] memory)
     {
         uint256[] memory groups = publishersOrderGroups[publisher];
 
-        OrderGroup[] memory orderGroups = new OrderGroup[](groups.length);
+        OrderGroup[] memory _orderGroups = new OrderGroup[](groups.length);
 
         for (uint256 i = 0; i < groups.length; i++) {
-            orderGroups[i] = getOrderGroup(groups[i]);
+            _orderGroups[i] = orderGroups[groups[i]];
         }
 
-        return (orderGroups, groups);
+        return (_orderGroups, groups);
     }
 
     function getEmployersOrderGroups(address employer)
         public
         view
-        returns (OrderGroup[] memory, uint256[] memory groupIds)
+        returns (OrderGroup[] memory, uint256[] memory)
     {
         uint256[] memory groups = employersOrderGroups[employer];
 
-        OrderGroup[] memory orderGroups = new OrderGroup[](groups.length);
+        OrderGroup[] memory _orderGroups = new OrderGroup[](groups.length);
 
         for (uint256 i = 0; i < groups.length; i++) {
-            orderGroups[i] = getOrderGroup(groups[i]);
+            _orderGroups[i] = orderGroups[groups[i]];
         }
 
-        return (orderGroups, groups);
+        return (_orderGroups, groups);
     }
 
     function getIntercessorsOrderGroups(address intercessor)
         public
         view
-        returns (OrderGroup[] memory, uint256[] memory groupIds)
+        returns (OrderGroup[] memory, uint256[] memory)
     {
         uint256[] memory groups = intercessorsOrderGroups[intercessor];
 
-        OrderGroup[] memory orderGroups = new OrderGroup[](groups.length);
+        OrderGroup[] memory _orderGroups = new OrderGroup[](groups.length);
 
         for (uint256 i = 0; i < groups.length; i++) {
-            orderGroups[i] = getOrderGroup(groups[i]);
+            _orderGroups[i] = orderGroups[groups[i]];
         }
 
-        return (orderGroups, groups);
+        return (_orderGroups, groups);
     }
 }

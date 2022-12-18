@@ -20,11 +20,36 @@ import { useEffect, useState } from 'react';
 import { readContract } from '@wagmi/core';
 import { DAOTaskOrder } from '../typechain-types/contracts/task3/DAOTaskOrder';
 import { orderReader } from '../lib/orderRead';
+import toast from 'react-hot-toast';
+import moment from 'moment';
+import { useRouter } from 'next/router';
 export default function Home() {
   const { address, isConnected, status } = useAccount();
   const { chain: currentChain } = useNetwork();
   const [activeType, setActiveType] = useState(0);
+  const router = useRouter();
+  const [orderGroup, setOrderGroup] = useState<DAOTaskOrder.OrderGroupStruct>();
+  const [orders, setOrders] = useState<DAOTaskOrder.OrderStruct[]>([]);
+  async function getOrders() {
+    const loading = toast.loading('加载中...');
+    try {
+      const data = await orderReader.orderGroup(
+        router.query.orderGroupId as string,
+      );
+      setOrderGroup(data.orderGroup);
+      setOrders(data.orders);
+    } catch (e) {
+      console.error(e);
+      toast.error('加载失败');
+    }
+    toast.dismiss(loading);
+  }
 
+  useEffect(() => {
+    if (router.query.orderGroupId) {
+      getOrders();
+    }
+  }, [router.query.orderGroupId]);
   return (
     <div className={styles.container}>
       <TaskHead />
@@ -37,7 +62,6 @@ export default function Home() {
             justify="center"
             css={{ marginTop: '4vh', marginBottom: '4vh' }}
           >
-
             <Card css={{ mw: '840px', p: '20px' }}>
               <Text
                 size={24}
@@ -72,7 +96,7 @@ export default function Home() {
                           fontSize: '12px',
                         }}
                       >
-                        谢谢谢谢谢寻寻寻寻寻寻寻寻寻寻
+                        {orderGroup?.title.toString() || ''}
                       </Text>
                     </Card>
                   </Grid>
@@ -95,7 +119,7 @@ export default function Home() {
                           fontSize: '12px',
                         }}
                       >
-                        0xf603C89719F09EFcff4E575c28a1C95180FEc801
+                        {orderGroup?.publisher.toString()}
                       </Text>
                     </Card>
                   </Grid>
@@ -118,7 +142,7 @@ export default function Home() {
                           fontSize: '12px',
                         }}
                       >
-                        0xf603C89719F09EFcff4E575c28a1C95180FEc801
+                        {orderGroup?.employer.toString()}
                       </Text>
                     </Card>
                   </Grid>
@@ -141,7 +165,7 @@ export default function Home() {
                           fontSize: '12px',
                         }}
                       >
-                        0xf603C89719F09EFcff4E575c28a1C95180FEc801
+                        {orderGroup?.intercessor.toString()}
                       </Text>
                     </Card>
                   </Grid>
@@ -164,7 +188,7 @@ export default function Home() {
                           fontSize: '12px',
                         }}
                       >
-                        0xf603C89719F09EFcff4E575c28a1C95180FEc801
+                        {orderGroup?.token.toString()}
                       </Text>
                     </Card>
                   </Grid>
@@ -187,7 +211,9 @@ export default function Home() {
                           fontSize: '12px',
                         }}
                       >
-                        2022-12-02 00:00:00
+                        {moment(
+                          1000 * parseInt(orderGroup?.createAt as string),
+                        ).format('YYYY-MM-DD HH:mm:ss')}
                       </Text>
                     </Card>
                   </Grid>
@@ -222,67 +248,58 @@ export default function Home() {
                 </Text>
 
                 <Grid.Container gap={2} justify="left">
-                  <Grid xs={12}>
-                    <Card
-                      css={{ mw: '100%', p: '20px' }}
-                      variant="flat"
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        flexDirection: 'row',
-                      }}
-                    >
-                      <Text>里程碑状态</Text>
+                  {orders.map((order, i) => {
+                    return (
+                      <Grid xs={12} key={i}>
+                        <Card
+                          css={{ mw: '100%', p: '20px' }}
+                          variant="flat"
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            flexDirection: 'row',
+                          }}
+                        >
+                          <Text>里程碑状态</Text>
 
-                      <Text
-                        style={{
-                          color: '#999999',
-                          fontSize: '12px',
-                        }}
-                      >
-                        时间：2022-12-29
-                      </Text>
-                      <Text
-                        style={{
-                          color: '#999999',
-                          fontSize: '12px',
-                        }}
-                      >
-                        <Badge size="sm">待开发</Badge>
-                      </Text>
-                      <Button auto size="sm" color="primary">
-                        转移 NFT 给 BUIDLER
-                      </Button>
-                    </Card>
-                  </Grid>
-                  <Grid xs={12}>
-                    <Card
-                      css={{ mw: '100%', p: '20px' }}
-                      variant="flat"
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        flexDirection: 'row',
-                      }}
-                    >
-                      <Text>里程碑状态</Text>
-
-                      <Text
-                        style={{
-                          color: '#999999',
-                          fontSize: '12px',
-                        }}
-                      >
-                        时间：2022-12-29
-                      </Text>
-                      <Badge size="sm">未结单</Badge>
-                      <Button auto size="sm" color="primary">
-                        请求仲裁介入
-                      </Button>
-                    </Card>
-                  </Grid>
+                          <Text
+                            style={{
+                              color: '#999999',
+                              fontSize: '12px',
+                            }}
+                          >
+                            时间：
+                            {moment(
+                              1000 *
+                                parseInt(order.deadlineTimestamp.toString()),
+                            ).format('YYYY-MM-DD')}
+                          </Text>
+                          <Text
+                            style={{
+                              color: '#999999',
+                              fontSize: '12px',
+                            }}
+                          >
+                            <Badge size="sm">
+                              {order.status === 0
+                                ? '开发中'
+                                : order.status == 1
+                                ? '已退单'
+                                : order.status == 2
+                                ? '等待仲裁'
+                                : order.status == 3
+                                ? '已结单'
+                                : '已取消'}
+                            </Badge>
+                          </Text>
+                          <Button auto size="sm" color="primary">
+                            转移 NFT 给 BUIDLER
+                          </Button>
+                        </Card>
+                      </Grid>
+                    );
+                  })}
                 </Grid.Container>
               </div>
             </Card>

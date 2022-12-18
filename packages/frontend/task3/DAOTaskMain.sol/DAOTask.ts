@@ -180,51 +180,34 @@ export const abi = [
   {
     inputs: [
       {
-        components: [
-          {
-            internalType: 'address',
-            name: 'publisher',
-            type: 'address',
-          },
-          {
-            internalType: 'address',
-            name: 'employer',
-            type: 'address',
-          },
-          {
-            internalType: 'address',
-            name: 'intercessor',
-            type: 'address',
-          },
-          {
-            internalType: 'string',
-            name: 'metadataURI',
-            type: 'string',
-          },
-          {
-            internalType: 'string',
-            name: 'title',
-            type: 'string',
-          },
-          {
-            internalType: 'address',
-            name: 'token',
-            type: 'address',
-          },
-          {
-            internalType: 'uint256',
-            name: 'createAt',
-            type: 'uint256',
-          },
-          {
-            internalType: 'uint256[]',
-            name: 'orders',
-            type: 'uint256[]',
-          },
-        ],
-        internalType: 'struct DAOTaskOrder.OrderGroup',
-        name: 'orderGroup',
-        type: 'tuple',
+        internalType: 'address',
+        name: 'publisher',
+        type: 'address',
+      },
+      {
+        internalType: 'address',
+        name: 'employer',
+        type: 'address',
+      },
+      {
+        internalType: 'address',
+        name: 'intercessor',
+        type: 'address',
+      },
+      {
+        internalType: 'string',
+        name: 'title',
+        type: 'string',
+      },
+      {
+        internalType: 'string',
+        name: 'metadataURI',
+        type: 'string',
+      },
+      {
+        internalType: 'address',
+        name: 'token',
+        type: 'address',
       },
       {
         internalType: 'uint256[]',
@@ -237,22 +220,50 @@ export const abi = [
         type: 'uint256[]',
       },
       {
-        internalType: 'bytes',
-        name: 'publisherSignature',
-        type: 'bytes',
-      },
-      {
-        internalType: 'bytes',
-        name: 'employerSignature',
-        type: 'bytes',
-      },
-      {
-        internalType: 'bytes',
-        name: 'intercessorSignature',
-        type: 'bytes',
+        internalType: 'bytes[]',
+        name: 'signatures',
+        type: 'bytes[]',
       },
     ],
     name: 'createOrderGroup',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'publisher',
+        type: 'address',
+      },
+      {
+        internalType: 'address',
+        name: 'employer',
+        type: 'address',
+      },
+      {
+        internalType: 'address',
+        name: 'intercessor',
+        type: 'address',
+      },
+      {
+        internalType: 'string',
+        name: 'title',
+        type: 'string',
+      },
+      {
+        internalType: 'string',
+        name: 'metadataURI',
+        type: 'string',
+      },
+      {
+        internalType: 'address',
+        name: 'token',
+        type: 'address',
+      },
+    ],
+    name: 'createOrderGroupTest',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -313,6 +324,53 @@ export const abi = [
     name: 'getEmployersOrderGroups',
     outputs: [
       {
+        components: [
+          {
+            internalType: 'address',
+            name: 'publisher',
+            type: 'address',
+          },
+          {
+            internalType: 'address',
+            name: 'employer',
+            type: 'address',
+          },
+          {
+            internalType: 'address',
+            name: 'intercessor',
+            type: 'address',
+          },
+          {
+            internalType: 'string',
+            name: 'metadataURI',
+            type: 'string',
+          },
+          {
+            internalType: 'string',
+            name: 'title',
+            type: 'string',
+          },
+          {
+            internalType: 'address',
+            name: 'token',
+            type: 'address',
+          },
+          {
+            internalType: 'uint256',
+            name: 'createAt',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256[]',
+            name: 'orders',
+            type: 'uint256[]',
+          },
+        ],
+        internalType: 'struct DAOTaskOrder.OrderGroup[]',
+        name: '',
+        type: 'tuple[]',
+      },
+      {
         internalType: 'uint256[]',
         name: '',
         type: 'uint256[]',
@@ -331,6 +389,53 @@ export const abi = [
     ],
     name: 'getIntercessorsOrderGroups',
     outputs: [
+      {
+        components: [
+          {
+            internalType: 'address',
+            name: 'publisher',
+            type: 'address',
+          },
+          {
+            internalType: 'address',
+            name: 'employer',
+            type: 'address',
+          },
+          {
+            internalType: 'address',
+            name: 'intercessor',
+            type: 'address',
+          },
+          {
+            internalType: 'string',
+            name: 'metadataURI',
+            type: 'string',
+          },
+          {
+            internalType: 'string',
+            name: 'title',
+            type: 'string',
+          },
+          {
+            internalType: 'address',
+            name: 'token',
+            type: 'address',
+          },
+          {
+            internalType: 'uint256',
+            name: 'createAt',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256[]',
+            name: 'orders',
+            type: 'uint256[]',
+          },
+        ],
+        internalType: 'struct DAOTaskOrder.OrderGroup[]',
+        name: '',
+        type: 'tuple[]',
+      },
       {
         internalType: 'uint256[]',
         name: '',
@@ -438,6 +543,33 @@ export const abi = [
         name: '',
         type: 'tuple',
       },
+      {
+        components: [
+          {
+            internalType: 'uint256',
+            name: 'amount',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'deadlineTimestamp',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'groupId',
+            type: 'uint256',
+          },
+          {
+            internalType: 'enum DAOTaskOrder.OrderStatus',
+            name: 'status',
+            type: 'uint8',
+          },
+        ],
+        internalType: 'struct DAOTaskOrder.Order[]',
+        name: '',
+        type: 'tuple[]',
+      },
     ],
     stateMutability: 'view',
     type: 'function',
@@ -452,6 +584,53 @@ export const abi = [
     ],
     name: 'getPublishersOrderGroups',
     outputs: [
+      {
+        components: [
+          {
+            internalType: 'address',
+            name: 'publisher',
+            type: 'address',
+          },
+          {
+            internalType: 'address',
+            name: 'employer',
+            type: 'address',
+          },
+          {
+            internalType: 'address',
+            name: 'intercessor',
+            type: 'address',
+          },
+          {
+            internalType: 'string',
+            name: 'metadataURI',
+            type: 'string',
+          },
+          {
+            internalType: 'string',
+            name: 'title',
+            type: 'string',
+          },
+          {
+            internalType: 'address',
+            name: 'token',
+            type: 'address',
+          },
+          {
+            internalType: 'uint256',
+            name: 'createAt',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256[]',
+            name: 'orders',
+            type: 'uint256[]',
+          },
+        ],
+        internalType: 'struct DAOTaskOrder.OrderGroup[]',
+        name: '',
+        type: 'tuple[]',
+      },
       {
         internalType: 'uint256[]',
         name: '',

@@ -23,6 +23,8 @@ import { OrderGroup } from '..';
 import { Data } from 'web3uikit';
 import { config } from '../../config';
 import { Refresh } from '@mui/icons-material';
+import { orderReader } from '../../lib/orderRead';
+import { BigNumber, utils } from 'ethers';
 
 export interface OSignOffer {
   id: string;
@@ -189,6 +191,36 @@ export default function Confirm() {
   useEffect(() => {
     setCurrent(address);
   }, [address]);
+
+  async function submit() {
+    const loading = toast.loading('Loading...');
+    try {
+      await orderReader.createOrderGroup(
+        confirmData.staticData.publisher,
+        confirmData.staticData.employer,
+        confirmData.staticData.intercessor,
+        confirmData.staticData.title,
+        '',
+        confirmData.staticData.token,
+        confirmData.staticData.orders.map((item) =>
+          utils.parseEther(String(item.amount)),
+        ),
+        confirmData.staticData.orders.map((item) =>
+          BigNumber.from(item.deadlineTimestamp),
+        ),
+        [
+          '0xccdc5fcfbc73297efce8cc4794268da0583781d26f96a65589417e42dfafb1882daf4b52b3e0caef59cb9d33dfd3cd96cd475c4c210a53f24c5ce8a8ab8752e81b',
+          '0xccdc5fcfbc73297efce8cc4794268da0583781d26f96a65589417e42dfafb1882daf4b52b3e0caef59cb9d33dfd3cd96cd475c4c210a53f24c5ce8a8ab8752e81b',
+          '0xccdc5fcfbc73297efce8cc4794268da0583781d26f96a65589417e42dfafb1882daf4b52b3e0caef59cb9d33dfd3cd96cd475c4c210a53f24c5ce8a8ab8752e81b',
+        ],
+      );
+      toast.success('success');
+    } catch (e) {
+      console.error(e);
+      toast.dismiss(loading);
+      toast.error('error');
+    }
+  }
   return (
     <div className={styles.container}>
       <TaskHead />
@@ -433,7 +465,7 @@ export default function Confirm() {
                     css={{ width: '100%' }}
                     color="primary"
                     onClick={() => {
-                      handleSign();
+                      submit();
                     }}
                     disabled={!EmployerSigned || !IntercessorSigned}
                     //to do: 需要判断有没有上过链

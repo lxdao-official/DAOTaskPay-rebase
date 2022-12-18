@@ -22,6 +22,7 @@ import Link from 'next/link';
 import { orderReader } from '../lib/orderRead';
 import { DAOTaskOrder } from '../typechain-types';
 import moment from 'moment';
+import toast from 'react-hot-toast';
 export default function Home() {
   const { address, isConnected, status } = useAccount();
   const { chain: currentChain } = useNetwork();
@@ -33,18 +34,37 @@ export default function Home() {
   >([]);
 
   async function getOrders() {
-    const _orderGroups = (await orderReader.publisherOrderGroups(
-      address as string,
-    )) as any;
-
-    setOrderGroups(_orderGroups);
+    const loading = toast.loading('加载中...');
+    try {
+      if (activeType === 0) {
+        const _orderGroups = (await orderReader.getPublishersOrderGroups(
+          address as string,
+        )) as any;
+        console.log(_orderGroups);
+        setOrderGroups(_orderGroups);
+      } else if (activeType === 1) {
+        const _orderGroups = (await orderReader.getEmployersOrderGroups(
+          address as string,
+        )) as any;
+        setOrderGroups(_orderGroups);
+      } else if (activeType === 2) {
+        const _orderGroups = (await orderReader.getIntercessorsOrderGroups(
+          address as string,
+        )) as any;
+        setOrderGroups(_orderGroups);
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error('加载失败');
+    }
+    toast.dismiss(loading);
   }
 
   useEffect(() => {
     if (isConnected) {
       getOrders();
     }
-  }, [isConnected]);
+  }, [isConnected, activeType]);
   return (
     <div className={styles.container}>
       <TaskHead />
@@ -103,7 +123,7 @@ export default function Home() {
                       <Grid xs={6} key={index}>
                         <Card css={{ mw: '100%', p: '20px' }} variant="flat">
                           <Link
-                            href={'/detail?orderGroupId=' + orderGroup}
+                            href={'/detail?orderGroupId=' + orderGroup.id}
                             style={{
                               display: 'flex',
                               justifyContent: 'space-between',
